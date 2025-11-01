@@ -26,16 +26,14 @@ pipeline {
 
         stage('Verify Container') {
             steps {
-                script {
-                    docker.image('hello-devops:latest').inspect()
-                }
+                sh 'docker ps | grep hello-devops-container'
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build and Container Run Successful!"
+            echo "✅ Build Successful!"
         }
         failure {
             echo "❌ Build Failed!"
