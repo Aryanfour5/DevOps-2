@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_HOST = "tcp://docker:2375"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -11,7 +15,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def app = docker.build('hello-devops:latest')
+                    sh 'docker build -t hello-devops:latest .'
                 }
             }
         }
@@ -19,12 +23,9 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Stop and remove existing container
                     sh 'docker stop hello-devops-container || true'
                     sh 'docker rm hello-devops-container || true'
-                    
-                    // Run container using Docker plugin
-                    docker.image('hello-devops:latest').run('-d -p 5000:5000 --name hello-devops-container')
+                    sh 'docker run -d -p 5000:5000 --name hello-devops-container hello-devops:latest'
                 }
             }
         }
