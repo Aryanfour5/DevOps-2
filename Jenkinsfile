@@ -4,38 +4,44 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                 git branch: 'main', url: 'https://github.com/Aryanfour5/DevOps-2.git'
+                git branch: 'main', url: 'https://github.com/Aryanfour5/DevOps-2.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t hello-devops .'
+                    def app = docker.build('hello-devops:latest')
                 }
             }
         }
 
-        stage('Run Docker') {
+        stage('Run Docker Container') {
             steps {
                 script {
-                    // Stop and remove any existing container
+                    // Stop and remove existing container
                     sh 'docker stop hello-devops-container || true'
                     sh 'docker rm hello-devops-container || true'
-                    // Run the container
-                    sh 'docker run -d -p 5000:5000 --name hello-devops-container hello-devops'
+                    
+                    // Run container using Docker plugin
+                    docker.image('hello-devops:latest').run('-d -p 5000:5000 --name hello-devops-container')
                 }
+            }
+        }
+
+        stage('Verify Container') {
+            steps {
+                sh 'docker ps | grep hello-devops-container'
             }
         }
     }
 
     post {
         success {
-            echo "✅ Jenkins Build and Container Run Successful!"
+            echo "✅ Build and Container Run Successful!"
         }
         failure {
             echo "❌ Build Failed!"
         }
     }
 }
-
