@@ -11,8 +11,13 @@ pipeline {
             steps {
                 echo "==================== SETTING UP DOCKER ===================="
                 sh '''
-                    which docker || (apt-get update && apt-get install -y docker.io)
-                    echo "✓ Docker CLI installed/verified"
+                    set -e
+                    echo "Current user: $(whoami)"
+                    echo "Installing Docker..."
+                    apt-get update -y
+                    apt-get install -y docker.io
+                    echo "✓ Docker installed"
+                    docker --version
                 '''
             }
         }
@@ -20,8 +25,12 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo "==================== CHECKING OUT CODE ===================="
-                git branch: 'main', url: 'https://github.com/Aryanfour5/DevOps-2.git'
-                sh 'echo "✓ Code checked out successfully"'
+                sh '''
+                    echo "Workspace: $(pwd)"
+                    echo "Files in workspace:"
+                    ls -la
+                    echo "✓ Code ready"
+                '''
             }
         }
 
@@ -51,8 +60,7 @@ pipeline {
                 echo "==================== VERIFYING CONTAINER ===================="
                 sh '''
                     sleep 2
-                    docker ps | grep ${CONTAINER_NAME} && echo "✓ Container is running successfully"
-                    docker logs ${CONTAINER_NAME} | head -20
+                    docker ps | grep ${CONTAINER_NAME} && echo "✓ Container is running"
                 '''
             }
         }
@@ -64,10 +72,8 @@ pipeline {
         }
         failure {
             echo "========== ❌ PIPELINE FAILED =========="
-            sh 'docker ps -a | grep ${CONTAINER_NAME} || true'
         }
         always {
-            echo "========== CLEANUP =========="
             sh 'docker rm -f ${CONTAINER_NAME} 2>/dev/null || true'
         }
     }
